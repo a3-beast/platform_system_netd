@@ -20,6 +20,8 @@ cc_library {
         "NetdClient.cpp",
     ],
 
+    shared_libs: ["libcutils"],
+
     header_libs: ["libnetd_client_headers"],
     export_header_lib_headers: ["libnetd_client_headers"],
 

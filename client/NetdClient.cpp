@@ -21,6 +21,7 @@
 #include <math.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <cutils/properties.h>
 
 #include <atomic>
 
@@ -29,6 +30,10 @@
 #include "FwmarkCommand.h"
 #include "resolv_netid.h"
 #include "Stopwatch.h"
+
+#include <stdio.h>
+#include <fcntl.h>
+#include <string.h>
 
 namespace {
 
@@ -75,7 +80,50 @@ int netdClientAccept4(int sockfd, sockaddr* addr, socklen_t* addrlen, int flags)
     return acceptedSocket;
 }
 
+
+char BlockAppList[][32] = {
+  "ABenchMark",
+  "antutu",
+  "geekbench"
+};
+
+
+
 int netdClientConnect(int sockfd, const sockaddr* addr, socklen_t addrlen) {
+    char benchmark_prop_default_value[PROPERTY_VALUE_MAX] = {0};
+    static bool flag = true;
+    static bool block_feature_enable = false;
+
+    if (flag) {
+        flag = false;
+        if (property_get("ro.vendor.net.upload.benchmark.default",
+                         benchmark_prop_default_value, NULL))
+            block_feature_enable = true;
+        else
+            block_feature_enable = false;
+    }
+    if (block_feature_enable) {
+        char path[32];
+        char line[32];
+        int fd = 0;
+        unsigned long i = 0;
+
+        snprintf(path, sizeof(path), "/proc/self/status");
+        fd = open(path, O_RDONLY);
+        if(fd >= 0) {
+            read(fd,line,sizeof(line));
+            line[31] = '\0';
+            for (i = 0; i < (sizeof(BlockAppList)/sizeof(BlockAppList[0])); i++) {
+                //format: Name: process_name
+                if(strstr(&(line[6]), BlockAppList[i]) != NULL) {
+                    close(fd);
+                    return -1;
+                }
+            }
+            close(fd);
+        }
+    }
+
     const bool shouldSetFwmark = (sockfd >= 0) && addr
             && FwmarkClient::shouldSetFwmark(addr->sa_family);
     if (shouldSetFwmark) {

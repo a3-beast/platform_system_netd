@@ -143,10 +143,18 @@ TetherController::~TetherController() {
 
 bool TetherController::setIpFwdEnabled() {
     bool success = true;
-    const char* value = mForwardingRequests.empty() ? "0" : "1";
+    bool disable = mForwardingRequests.empty();
+    const char* value = disable ? "0" : "1";
     ALOGD("Setting IP forward enable = %s", value);
     success &= writeToFile(IPV4_FORWARDING_PROC_FILE, value);
     success &= writeToFile(IPV6_FORWARDING_PROC_FILE, value);
+    if (disable) {
+        // Turning off the forwarding sysconf in the kernel has the side effect
+        // of turning on ICMP redirect, which is a security hazard.
+        // Turn ICMP redirect back off immediately.
+        int rv = InterfaceController::disableIcmpRedirects();
+        success &= (rv == 0);
+    }
     return success;
 }
 
@@ -630,10 +638,6 @@ int TetherController::setForwardRules(bool add, const char *intIface, const char
     }
 
     std::vector<std::string> v4 = {
-        "*raw",
-        StringPrintf("%s %s -p tcp --dport 21 -i %s -j CT --helper ftp",
-                     op, LOCAL_RAW_PREROUTING, intIface),
-        "COMMIT",
         "*filter",
         StringPrintf("%s %s -i %s -o %s -m state --state ESTABLISHED,RELATED -g %s",
                      op, LOCAL_FORWARD, extIface, intIface, LOCAL_TETHER_COUNTERS_CHAIN),

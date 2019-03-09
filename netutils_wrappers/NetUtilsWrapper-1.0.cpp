@@ -34,7 +34,9 @@
 
 #define OEM_IFACE "[^ ]*oem[0-9]+"
 #define RMNET_IFACE "(r_)?rmnet_(data)?[0-9]+"
-#define VENDOR_IFACE "(" OEM_IFACE "|" RMNET_IFACE ")"
+#define CCMNI_IFACE "cc(3)?mni[0-9]+"
+#define KNOWN_IFACE "wlan0" "|" "ifb0"
+#define VENDOR_IFACE "(" OEM_IFACE "|" RMNET_IFACE "|" CCMNI_IFACE "|" KNOWN_IFACE ")"
 #define VENDOR_CHAIN "(oem_.*|nm_.*|qcom_.*)"
 
 // List of net utils wrapped by this program
@@ -67,7 +69,7 @@ const char *EXPECTED_REGEXPS[] = {
 
     // Manage vendor interfaces.
     CMD "tc .* dev " VENDOR_IFACE,
-    CMD "ip( -4| -6)? (addr|address) (add|del|delete|flush).* dev " VENDOR_IFACE,
+    CMD "ip( -4| -6)? (addr|address|route) (add|del|delete|flush).* dev " VENDOR_IFACE,
 
     // Other activities observed on current devices. In future releases, these should be supported
     // in a way that is less likely to interfere with general Android networking behaviour.

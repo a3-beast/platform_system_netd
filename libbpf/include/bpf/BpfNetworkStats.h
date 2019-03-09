@@ -117,9 +117,8 @@ int parseBpfNetworkStatsDetail(std::vector<stats_line>* lines,
                                int limitUid);
 
 int parseBpfNetworkStatsDev(std::vector<stats_line>* lines);
-void groupNetworkStats(std::vector<stats_line>* lines);
 int cleanStatsMap();
+void groupNetworkStats(std::vector<stats_line>* lines);
 }  // namespace bpf
 }  // namespace android
-
 #endif  // _BPF_NETWORKSTATS_H

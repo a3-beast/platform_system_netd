@@ -630,6 +630,7 @@ bool NetworkController::removeInterfaceAddress(unsigned ifindex, const char* add
     if (ifindices.erase(ifindex) > 0) {
         if (ifindices.size() == 0) {
             mAddressToIfindices.erase(ifindicesIter);
+            return true;
         }
     } else {
         ALOGE("No record of address %s on interface %u", address, ifindex);

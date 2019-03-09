@@ -162,6 +162,7 @@ int parseBpfNetworkStatsDetailInternal(std::vector<stats_line>* lines,
         return -res.code();
     }
 
+
     // Since eBPF use hash map to record stats, network stats collected from
     // eBPF will be out of order. And the performance of findIndexHinted in
     // NetworkStats will also be impacted.
